@@ -1,0 +1,26 @@
+.auth-card {
+  max-width: 520px;
+  margin: 32px auto;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.08);
+}
+
+.auth-title {
+  margin: 0 0 24px;
+}
+
+.w-100 { width: 100%; }
+
+mat-form-field + mat-form-field {
+  margin-top: 12px;
+}
+
+.actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+
+
+  button { width: 100%; }
+}
