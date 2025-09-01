@@ -1,22 +1,24 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
+import { canActivateAuth } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+
+  // Auth layout + сторінки
   {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('./features/dashboard/dashboard').then(m => m.DashboardComponent),
+    path: '',
+    loadComponent: () => import('./layouts/auth-layout/auth-layout').then(m => m.AuthLayoutComponent),
+    children: [
+      { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent) },
+      { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent) },
+    ]
   },
-  {
-    path: 'auth/login',
-    loadComponent: () =>
-      import('./features/auth/login/login').then(m => m.LoginComponent),
+
+  // Захищений дашборд
+  { path: 'dashboard',
+    loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent),
+    canActivate: [canActivateAuth]
   },
-  {
-    path: 'auth/register',
-    loadComponent: () =>
-      import('./features/auth/register/register').then(m => m.RegisterComponent),
-  },
+
   { path: '**', redirectTo: 'dashboard' },
 ];
