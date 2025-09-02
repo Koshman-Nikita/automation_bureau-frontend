@@ -1,0 +1,52 @@
+<form class="dialog-form" [formGroup]="form" (ngSubmit)="save()">
+  <h2 class="dialog-title">{{ data?._id ? 'Редагування пошукача' : 'Новий пошукач' }}</h2>
+
+  <div class="grid-2">
+    <mat-form-field appearance="outline">
+      <mat-label>Прізвище</mat-label>
+      <input matInput formControlName="lastName" autofocus>
+      <mat-error *ngIf="f.lastName.hasError('required')">Обовʼязково</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Імʼя</mat-label>
+      <input matInput formControlName="firstName">
+      <mat-error *ngIf="f.firstName.hasError('required')">Обовʼязково</mat-error>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>По батькові</mat-label>
+    <input matInput formControlName="middleName">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Кваліфікація</mat-label>
+    <input matInput formControlName="qualification">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Вид діяльності</mat-label>
+    <input matInput formControlName="activityType">
+    <mat-error *ngIf="f.activityType.hasError('required')">Обовʼязково</mat-error>
+  </mat-form-field>
+
+  <div class="grid-2">
+    <mat-form-field appearance="outline">
+      <mat-label>Очікувана ЗП</mat-label>
+      <input matInput type="number" formControlName="desiredSalary">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Нотатки</mat-label>
+      <input matInput formControlName="notes" placeholder="Коментар">
+    </mat-form-field>
+  </div>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading">Скасувати</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading">
+      {{ loading ? 'Збереження…' : (data?._id ? 'Зберегти' : 'Створити') }}
+    </button>
+  </div>
+</form>

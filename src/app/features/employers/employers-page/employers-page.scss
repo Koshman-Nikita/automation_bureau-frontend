@@ -1,0 +1,9 @@
+.header {
+  display: flex; align-items: center; justify-content: space-between; margin: 8px 0 12px;
+  .tools { display: flex; gap: 12px; align-items: center; }
+  .search { min-width: 260px; }
+}
+.table-wrap { background: #fff; padding: 8px; border-radius: 12px; }
+.col-actions { width: 100px; text-align: right; }
+.busy { display: grid; place-items: center; height: 220px; }
+.w-100 { width: 100%; }

@@ -1,0 +1,32 @@
+<form class="dialog-form" [formGroup]="form" (ngSubmit)="save()">
+  <h2 class="dialog-title">{{ data?._id ? 'Редагування роботодавця' : 'Новий роботодавець' }}</h2>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Назва</mat-label>
+    <input matInput formControlName="name" placeholder="ТОВ «Компанія»" autofocus>
+    <mat-error *ngIf="f.name.hasError('required')">Вкажіть назву</mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Вид діяльності</mat-label>
+    <input matInput formControlName="activityType" placeholder="HR / Sales / ...">
+    <mat-error *ngIf="f.activityType.hasError('required')">Обовʼязково</mat-error>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Адреса</mat-label>
+    <input matInput formControlName="address">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="w-100">
+    <mat-label>Телефон</mat-label>
+    <input matInput formControlName="phone" placeholder="+380...">
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading">Скасувати</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading">
+      {{ loading ? 'Збереження…' : (data?._id ? 'Зберегти' : 'Створити') }}
+    </button>
+  </div>
+</form>

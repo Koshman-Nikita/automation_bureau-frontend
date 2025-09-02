@@ -1,6 +1,16 @@
 <mat-toolbar color="primary">
   <span>Automation Bureau — Dashboard</span>
+
+  <nav class="nav" style="margin-left:16px;">
+    <a mat-button routerLink="/activity-types">Activity Types</a>
+    <a mat-button routerLink="/employers">Employers</a>
+    <a mat-button routerLink="/jobseekers">Jobseekers</a>
+    <a mat-button routerLink="/vacancies">Vacancies</a>
+    <a mat-button routerLink="/agreements">Agreements</a>
+  </nav>
+
   <span style="flex:1 1 auto"></span>
+
   <span *ngIf="userEmail" style="margin-right: 12px;">{{ userEmail }}</span>
   <button mat-button (click)="logout()">
     <mat-icon>logout</mat-icon>
