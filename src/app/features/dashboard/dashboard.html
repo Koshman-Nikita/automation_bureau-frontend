@@ -4,7 +4,6 @@
 
     <div class="right">
 
-      <!-- Пошук -->
       <mat-form-field appearance="outline" class="search">
         <mat-label>Пошук</mat-label>
         <input
@@ -18,7 +17,6 @@
         </button>
       </mat-form-field>
 
-      <!-- Швидкі дії -->
       <button mat-raised-button color="primary" (click)="goCreate('vacancy')">
         <mat-icon>post_add</mat-icon>&nbsp;Вакансію
       </button>
@@ -35,7 +33,6 @@
         <mat-icon>category</mat-icon>&nbsp;Види діяльності
       </button>
 
-      <!-- ✅ Auth-панель: ім'я/пошта + Log out | Sign in -->
       <ng-container *ngIf="user$ | async as u; else signedOut">
         <div class="userbox">
           <mat-icon>account_circle</mat-icon>
