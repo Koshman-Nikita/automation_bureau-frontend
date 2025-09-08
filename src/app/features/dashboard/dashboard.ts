@@ -8,8 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
 import { StatsService, StatsOverview } from '../../core/services/stats.service';
+import { AuthService } from '../../core/services/auth.service';
+import { of, isObservable, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   standalone: true,
@@ -25,14 +27,14 @@ import { StatsService, StatsOverview } from '../../core/services/stats.service';
 export class DashboardPageComponent {
   private statsApi = inject(StatsService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
-  // пошук
+
   q = signal<string>('');
 
-  // завантаження
   loading = signal<boolean>(false);
 
-  // дані
+
   counts = signal<StatsOverview>({
     vacanciesOpen: 0,
     vacanciesClosed: 0,
@@ -44,6 +46,20 @@ export class DashboardPageComponent {
   });
 
   recent = computed(() => this.counts().recent ?? []);
+
+  user$: Observable<any> = (() => {
+    const anyAuth = this.auth as any;
+    if (isObservable(anyAuth.user$)) return anyAuth.user$ as Observable<any>;
+    if (isObservable(anyAuth.currentUser$)) return anyAuth.currentUser$ as Observable<any>;
+    if (typeof anyAuth.user === 'function') {
+      try { return of(anyAuth.user()); } catch { /* ignore */ }
+    }
+    if (typeof anyAuth.currentUser === 'function') {
+      try { return of(anyAuth.currentUser()); } catch { /* ignore */ }
+    }
+
+    return of(null);
+  })().pipe(map(u => u ?? null), startWith(null));
 
   ngOnInit() { this.load(); }
 
@@ -70,7 +86,7 @@ export class DashboardPageComponent {
 
   doSearch() { this.load(); }
 
-  // показуємо число (0 замість прочерка)
+
   val(n?: number | null): number { return Number.isFinite(n as number) ? (n as number) : 0; }
 
   fmtDate(s?: string) {
@@ -80,7 +96,6 @@ export class DashboardPageComponent {
       d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
-  // кнопки швидких дій
   goCreate(kind: 'vacancy'|'agreement'|'jobseeker'|'employer'|'activity') {
     switch (kind) {
       case 'vacancy':   this.router.navigate(['/vacancies']); break;
@@ -91,6 +106,21 @@ export class DashboardPageComponent {
     }
   }
 
-  // рольову перевірку тут залишимо просто true (якщо є реальна role — підставиш)
   isAdmin() { return true; }
+
+  login()  { this.router.navigateByUrl('/login'); }
+
+  logout() {
+    const anyAuth = this.auth as any;
+    try {
+      const ret = anyAuth.logout?.();
+      if (ret && typeof ret.then === 'function') {
+        ret.finally(() => this.router.navigateByUrl('/login'));
+      } else {
+        this.router.navigateByUrl('/login');
+      }
+    } catch {
+      this.router.navigateByUrl('/login');
+    }
+  }
 }

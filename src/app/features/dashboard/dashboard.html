@@ -3,6 +3,7 @@
     <h1 class="title">Аналітика бюро</h1>
 
     <div class="right">
+
       <mat-form-field appearance="outline" class="search">
         <mat-label>Пошук</mat-label>
         <input
@@ -31,6 +32,21 @@
       <button mat-raised-button color="primary" (click)="goCreate('activity')">
         <mat-icon>category</mat-icon>&nbsp;Види діяльності
       </button>
+
+      <ng-container *ngIf="user$ | async as u; else signedOut">
+        <div class="userbox">
+          <mat-icon>account_circle</mat-icon>
+          <div class="meta">
+            <div class="name">{{ u?.name || u?.fullName || 'Користувач' }}</div>
+            <div class="email">{{ u?.email || '—' }}</div>
+          </div>
+          <button mat-stroked-button (click)="logout()">Log out</button>
+        </div>
+      </ng-container>
+
+      <ng-template #signedOut>
+        <button mat-stroked-button (click)="login()">Sign in</button>
+      </ng-template>
     </div>
   </div>
 
