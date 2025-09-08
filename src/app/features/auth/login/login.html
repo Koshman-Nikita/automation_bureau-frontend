@@ -1,0 +1,25 @@
+<mat-card class="auth-card">
+  <h2 class="auth-title">Вхід</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Пароль</mat-label>
+      <input matInput type="password" formControlName="password" />
+    </mat-form-field>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" [disabled]="loading">
+        Увійти
+      </button>
+
+      <a mat-stroked-button color="accent" routerLink="/register">
+        Реєстрація
+      </a>
+    </div>
+  </form>
+</mat-card>

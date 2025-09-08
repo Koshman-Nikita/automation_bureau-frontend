@@ -1,0 +1,67 @@
+<form [formGroup]="form" (ngSubmit)="save()" autocomplete="off">
+  <h2 mat-dialog-title class="dialog-title">
+    {{ data?._id ? 'Редагувати угоду' : 'Нова угода' }}
+  </h2>
+
+  <mat-dialog-content class="content">
+    <!-- Роботодавець із пошуком -->
+    <mat-form-field appearance="outline" class="w-full mb-2">
+      <mat-label>Роботодавець*</mat-label>
+      <mat-select formControlName="employerId">
+        <mat-option>
+          <mat-icon>search</mat-icon>
+          <input
+            matInput
+            placeholder="Пошук компанії"
+            [formControl]="empSearch"
+            (keydown.enter)="$event.preventDefault()" />
+        </mat-option>
+        <mat-option *ngFor="let e of employers" [value]="e._id">{{ e.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Пошукач із пошуком; показуємо ІМ’Я, у форму пишемо ID -->
+    <mat-form-field appearance="outline" class="w-full mb-2">
+      <mat-label>Пошукач*</mat-label>
+      <mat-select formControlName="jobseekerId">
+        <mat-option>
+          <mat-icon>search</mat-icon>
+          <input
+            matInput
+            placeholder="Пошук пошукача"
+            [formControl]="jsSearch"
+            (keydown.enter)="$event.preventDefault()" />
+        </mat-option>
+        <mat-option *ngFor="let j of jobseekers" [value]="j._id">
+          {{ j.label }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Посада з автодоповненням за вакансіями роботодавця -->
+    <mat-form-field appearance="outline" class="w-full mb-2">
+      <mat-label>Посада / назва*</mat-label>
+      <input
+        matInput
+        formControlName="position"
+        [matAutocomplete]="autoPos" />
+      <mat-autocomplete #autoPos="matAutocomplete" autoActiveFirstOption>
+        <mat-option *ngFor="let p of positions" [value]="p">{{ p }}</mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-full mb-2">
+      <mat-label>Комісія, грн</mat-label>
+      <input matInput type="number" formControlName="commission" />
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="actions">
+    <button type="button" mat-stroked-button (click)="cancel()" [disabled]="loading">
+      Скасувати
+    </button>
+    <button type="submit" mat-raised-button color="primary" [disabled]="form.invalid || loading">
+      {{ data?._id ? 'Зберегти' : 'Створити' }}
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,22 @@
+<form [formGroup]="form" (ngSubmit)="save()" autocomplete="off">
+  <h2 mat-dialog-title class="dialog-title">
+    {{ data?._id ? 'Редагувати вид діяльності' : 'Новий вид діяльності' }}
+  </h2>
+
+  <mat-dialog-content class="content">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Назва*</mat-label>
+      <input matInput formControlName="name" />
+      <mat-hint>Мінімум 2 символи</mat-hint>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading">
+      Скасувати
+    </button>
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || loading">
+      {{ data?._id ? 'Зберегти' : 'Створити' }}
+    </button>
+  </mat-dialog-actions>
+</form>
