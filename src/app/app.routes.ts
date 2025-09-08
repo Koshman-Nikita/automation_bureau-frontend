@@ -2,12 +2,12 @@ import { Routes } from '@angular/router';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout';
 import { LoginComponent } from './features/auth/login/login';
 import { RegisterComponent } from './features/auth/register/register';
-import { DashboardComponent } from './features/dashboard/dashboard';
 import { canActivateAuth } from './core/guards/auth.guard';
+import { DashboardPageComponent } from './features/dashboard/dashboard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-  { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardComponent), canActivate: [canActivateAuth] },
+  { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard').then(m => m.DashboardPageComponent), canActivate: [canActivateAuth] },
 
   { path: 'activity-types', loadComponent: () => import('./features/activity-types/activity-types-page/activity-types-page').then(m => m.ActivityTypesPage), canActivate: [canActivateAuth] },
 
