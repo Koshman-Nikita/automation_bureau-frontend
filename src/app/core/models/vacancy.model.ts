@@ -1,13 +1,14 @@
+export type VacancyStatus = 'open' | 'closed';
+
 export interface Vacancy {
   _id?: string;
-
   employerId: string;
   title: string;
-  activityType: string;
-
-  salaryFrom?: number | null;
-  salaryTo?: number | null;
-
-  isActive?: boolean;
-  notes?: string | null;
+  position?: string | null;
+  activityType?: string | null;
+  skills: string[];
+  salary?: number | null;
+  status: VacancyStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }

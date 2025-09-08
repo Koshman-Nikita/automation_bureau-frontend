@@ -1,1 +1,13 @@
-@use '../../shared-dialog' as *;
+:host { display:block; }
+.dialog-title { margin: 0 0 14px !important; font-weight:700; }
+.content { padding-top: 8px; }
+.grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.col-span-2 { grid-column: span 2; }
+.w-full { width: 100%; }
+.mb-2 { margin-bottom: 8px; }
+.hidden { display:none; }
+.actions { padding-top: 8px; }

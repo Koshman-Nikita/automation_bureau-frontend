@@ -1,9 +1,10 @@
 export interface Employer {
-  _id: string;
+  _id?: string;
   name: string;
-  activityType: string;
-  address?: string;
-  phone?: string;
+  activityType?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  city?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

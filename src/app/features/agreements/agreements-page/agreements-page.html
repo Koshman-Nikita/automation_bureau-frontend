@@ -1,61 +1,102 @@
-<div class="table-wrap" *ngIf="!loading; else busy">
-  <div class="toolbar">
-    <button mat-flat-button color="primary" (click)="add()">
-      <mat-icon>add</mat-icon> Додати
-    </button>
+<div class="page">
+  <div class="header">
+    <div class="left">
+      <button mat-stroked-button (click)="back()">
+        <mat-icon>arrow_back</mat-icon>&nbsp;Назад
+      </button>
+      <h1 class="title">Угоди</h1>
+    </div>
 
-    <span class="spacer"></span>
+    <div class="right">
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Пошук</mat-label>
+        <input matInput [(ngModel)]="q" (keyup.enter)="search()" />
+        <button
+          *ngIf="q"
+          matSuffix
+          mat-icon-button
+          aria-label="clear"
+          (click)="q=''; search()"
+        >
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
 
-    <mat-form-field appearance="outline" style="width:260px">
-      <mat-label>Пошук</mat-label>
-      <input matInput [(ngModel)]="q" (keyup.enter)="search()">
-    </mat-form-field>
+      <button mat-raised-button color="primary" (click)="add()">
+        <mat-icon>add</mat-icon>&nbsp;Додати
+      </button>
+    </div>
   </div>
 
-  <table mat-table [dataSource]="items()" class="mat-elevation-z1 w-100">
+  <div class="content" *ngIf="!loading; else busy">
+    <table mat-table [dataSource]="items" class="w-100 table-card">
+      <!-- employer -->
+      <ng-container matColumnDef="employer">
+        <th mat-header-cell *matHeaderCellDef>Роботодавець</th>
+        <td mat-cell *matCellDef="let r">{{ employerName(r) }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="employerId">
-      <th mat-header-cell *matHeaderCellDef> Роботодавець </th>
-      <td mat-cell *matCellDef="let r"> {{ r.employerId }} </td>
-    </ng-container>
+      <!-- jobseeker -->
+      <ng-container matColumnDef="jobseeker">
+        <th mat-header-cell *matHeaderCellDef>Пошукач</th>
+        <td mat-cell *matCellDef="let r">{{ jobseekerName(r) }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="jobseekerId">
-      <th mat-header-cell *matHeaderCellDef> Кандидат </th>
-      <td mat-cell *matCellDef="let r"> {{ r.jobseekerId }} </td>
-    </ng-container>
+      <!-- position -->
+      <ng-container matColumnDef="position">
+        <th mat-header-cell *matHeaderCellDef>Посада</th>
+        <td mat-cell *matCellDef="let r">{{ r.position || '—' }}</td>
+      </ng-container>
 
-    <ng-container matColumnDef="vacancyId">
-      <th mat-header-cell *matHeaderCellDef> Вакансія </th>
-      <td mat-cell *matCellDef="let r"> {{ r.vacancyId }} </td>
-    </ng-container>
+      <!-- commission -->
+      <ng-container matColumnDef="commission">
+        <th mat-header-cell *matHeaderCellDef>Комісія, грн</th>
+        <td mat-cell *matCellDef="let r">
+          {{ r.commission === null || r.commission === undefined ? '—' : r.commission }}
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="position">
-      <th mat-header-cell *matHeaderCellDef> Посада </th>
-      <td mat-cell *matCellDef="let r"> {{ r.position }} </td>
-    </ng-container>
+      <!-- actions -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef class="col-actions"></th>
+        <td mat-cell *matCellDef="let r" class="col-actions">
+          <button mat-icon-button matTooltip="Редагувати" (click)="edit(r)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" matTooltip="Видалити" (click)="remove(r)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-    <ng-container matColumnDef="commission">
-      <th mat-header-cell *matHeaderCellDef> Комісія </th>
-      <td mat-cell *matCellDef="let r"> {{ r.commission }} </td>
-    </ng-container>
+      <!-- ЗВЕРНІТЬ УВАГУ: блоку «vacancy» тут більше немає -->
 
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef></th>
-      <td mat-cell *matCellDef="let r">
-        <button mat-icon-button (click)="edit(r)"><mat-icon>edit</mat-icon></button>
-        <button mat-icon-button color="warn" (click)="remove(r)"><mat-icon>delete</mat-icon></button>
-      </td>
-    </ng-container>
+      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-row *matRowDef="let row; columns: cols"></tr>
 
-    <tr mat-header-row *matHeaderRowDef="cols"></tr>
-    <tr mat-row *matRowDef="let row; columns: cols"></tr>
-  </table>
+      <tr class="empty" *ngIf="(items || []).length === 0">
+        <td colspan="6">
+          <div class="empty-box">
+            <mat-icon>inbox</mat-icon>
+            Немає даних
+          </div>
+        </td>
+      </tr>
+    </table>
 
-  <mat-paginator [length]="total()" [pageIndex]="page()-1" [pageSize]="limit()"
-                 [pageSizeOptions]="[5,10,20,50]" (page)="pageChange($event)">
-  </mat-paginator>
+    <mat-paginator
+      [length]="total"
+      [pageIndex]="page - 1"
+      [pageSize]="limit"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="pageChange($event)"
+    >
+    </mat-paginator>
+  </div>
+
+  <ng-template #busy>
+    <div class="busy">
+      <mat-spinner diameter="36"></mat-spinner>
+    </div>
+  </ng-template>
 </div>
-
-<ng-template #busy>
-  <div class="busy"><mat-spinner diameter="36"></mat-spinner></div>
-</ng-template>

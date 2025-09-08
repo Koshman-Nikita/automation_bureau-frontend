@@ -1,39 +1,38 @@
 import { inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Paged } from '../models/paged.model';
-import { environment } from '../../../environments/environment';
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export class CrudService<T> {
   protected http = inject(HttpClient);
-  constructor(private resource: string) {}
 
-  private url(path = ''): string {
-    const base = environment.apiBase.replace(/\/$/, '');
-    const res = this.resource.replace(/^\//, '');
-    const p = path ? `/${path.replace(/^\//, '')}` : '';
-    return `${base}/${res}${p}`;
-  }
+  constructor(protected baseUrl: string) {}
 
-  list(page = 1, limit = 10, q = ''): Observable<Paged<T>> {
+  list(page = 1, limit = 10, q = ''): Observable<Page<T>> {
     let params = new HttpParams().set('page', page).set('limit', limit);
     if (q) params = params.set('q', q);
-    return this.http.get<Paged<T>>(this.url(), { params });
+    return this.http.get<Page<T>>(this.baseUrl, { params });
   }
 
   get(id: string): Observable<T> {
-    return this.http.get<T>(this.url(id));
+    return this.http.get<T>(`${this.baseUrl}/${id}`);
   }
 
   create(body: Partial<T>): Observable<T> {
-    return this.http.post<T>(this.url(), body);
+    return this.http.post<T>(this.baseUrl, body);
   }
 
   update(id: string, body: Partial<T>): Observable<T> {
-    return this.http.patch<T>(this.url(id), body);
+    return this.http.patch<T>(`${this.baseUrl}/${id}`, body);
   }
 
   delete(id: string): Observable<void> {
-    return this.http.delete<void>(this.url(id));
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

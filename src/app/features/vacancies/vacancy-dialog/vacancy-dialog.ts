@@ -1,95 +1,244 @@
-import { Component, Inject, inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import {
+  FormBuilder, Validators, ReactiveFormsModule,
+  FormControl, FormGroup
+} from '@angular/forms';
+
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Observable } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
+
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+
+import { Vacancy } from '../../../core/models/vacancy.model';
+import { Employer } from '../../../core/models/employer.model';
+import { ActivityType } from '../../../core/models/activity-type.model';
 
 import { VacanciesService } from '../../../core/services/vacancies.service';
-import { Vacancy } from '../../../core/models/vacancy.model';
-
-type DialogData = Partial<Vacancy>; // {_id?, employerId?, title?, activityType?, salaryFrom?, salaryTo?, notes?}
+import { EmployersService } from '../../../core/services/employers.service';
+import { ActivityTypesService } from '../../../core/services/activity-types.service';
 
 @Component({
   selector: 'app-vacancy-dialog',
   standalone: true,
+  templateUrl: './vacancy-dialog.html',
+  styleUrls: ['./vacancy-dialog.scss'],
   imports: [
     CommonModule,
     ReactiveFormsModule,
     MatDialogModule,
+    MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
-    MatSnackBarModule,
+    MatIconModule,
+    MatAutocompleteModule,
+    MatChipsModule,
   ],
-  templateUrl: './vacancy-dialog.html',
-  styleUrls: ['./vacancy-dialog.scss'],
 })
-export class VacancyDialogComponent {
-  private fb = inject(FormBuilder);
-  private api = inject(VacanciesService);
-  private snack = inject(MatSnackBar);
+export class VacancyDialogComponent implements OnInit {
+  private saving = false;
+  get loading() { return this.saving; }
 
-  loading = false;
+  employers: Employer[] = [];
+  activityTypes: ActivityType[] = [];
 
-  form = this.fb.nonNullable.group({
-    employerId: ['', Validators.required],
-    title: ['', Validators.required],
-    activityType: ['', Validators.required],
-    salaryFrom: this.fb.control<number | null>(null),
-    salaryTo: this.fb.control<number | null>(null),
-    notes: [''],
-  });
+  empSearch!: FormControl<string>;
+  actSearch!: FormControl<string>;
+
+  skills: string[] = [];
+
+  form!: FormGroup<{
+    employerId: FormControl<string | null>;
+    title: FormControl<string>;
+    activityType: FormControl<string | null>;
+    salary: FormControl<number | null>;
+    status: FormControl<'open' | 'closed'>;
+    skillsText: FormControl<string>;
+  }>;
 
   get f() { return this.form.controls; }
 
   constructor(
-    private ref: MatDialogRef<VacancyDialogComponent, boolean>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData | null
+    private fb: FormBuilder,
+    private api: VacanciesService,
+    private employersApi: EmployersService,
+    private actApi: ActivityTypesService,
+    private ref: MatDialogRef<VacancyDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: Vacancy | null,
   ) {
+    console.log('[VacancyDialog] ctor data:', data);
 
-    if (data) {
-      this.form.patchValue({
-        employerId: data.employerId ?? '',
-        title: data.title ?? '',
-        activityType: data.activityType ?? '',
-        salaryFrom: data.salaryFrom ?? null,
-        salaryTo: data.salaryTo ?? null,
-        notes: data.notes ?? '',
-      });
-    }
+    this.empSearch = this.fb.control('', { nonNullable: true });
+    this.actSearch = this.fb.control('', { nonNullable: true });
+
+    this.form = this.fb.group({
+      employerId: this.fb.control<string | null>(null, { validators: [Validators.required] }),
+      title: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
+      activityType: this.fb.control<string | null>(null),
+      salary: this.fb.control<number | null>(null),
+      status: this.fb.nonNullable.control<'open' | 'closed'>('open'),
+      skillsText: this.fb.nonNullable.control(''),
+    });
+
+    console.log('[VacancyDialog] form created:', this.form.value);
   }
 
-  save() {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+  ngOnInit(): void {
+    console.log('[VacancyDialog] ngOnInit start');
 
-    const raw = this.form.getRawValue();
-    const body: Partial<Vacancy> = {
-      employerId: raw.employerId.trim(),
-      title: raw.title.trim(),
-      activityType: raw.activityType.trim(),
-      salaryFrom: raw.salaryFrom ?? null,
-      salaryTo: raw.salaryTo ?? null,
-      notes: raw.notes?.trim() || '',
-    };
+    this.loadEmployers('');
+    this.loadActivityTypes('');
 
-    let req$: Observable<Vacancy>;
-    this.loading = true;
+    this.empSearch.valueChanges.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(q => q?.trim()
+        ? this.employersApi.list(1, 20, q.trim())
+        : of({ items: [], total: 0, page: 1, limit: 20 }))
+    ).subscribe({
+      next: res => this.employers = res.items ?? [],
+      error: () => { this.employers = []; }
+    });
 
-    req$ = (this.data && this.data._id)
-      ? this.api.update(this.data._id, body)
-      : this.api.create(body);
+    this.actSearch.valueChanges.pipe(
+      debounceTime(250),
+      distinctUntilChanged(),
+      switchMap(q => q?.trim()
+        ? this.actApi.list(1, 20, q.trim())
+        : of({ items: [], total: 0, page: 1, limit: 20 }))
+    ).subscribe({
+      next: res => this.activityTypes = res.items ?? [],
+      error: () => { this.activityTypes = []; }
+    });
 
-    req$.subscribe({
-      next: () => { this.loading = false; this.snack.open('Збережено', 'OK', { duration: 1800 }); this.ref.close(true); },
-      error: () => { this.loading = false; this.snack.open('Помилка збереження', 'OK', { duration: 2200 }); },
+    if (this.data) {
+      const { employerId, title, activityType, salary, status, skills } = this.data;
+      this.skills = Array.isArray(skills) ? [...skills] : [];
+      this.form.patchValue({
+        employerId: employerId ?? null,
+        title: title ?? '',
+        activityType: activityType ?? null,
+        salary: salary ?? null,
+        status: (status as 'open' | 'closed') ?? 'open',
+        skillsText: this.skills.join(', '),
+      });
+      console.log('[VacancyDialog] form patched from data:', this.form.value);
+    }
+
+    console.log('[VacancyDialog] ngOnInit done');
+  }
+
+  private loadEmployers(q: string) {
+    console.log('[VacancyDialog] loadEmployers q:', q);
+    this.employersApi.list(1, 20, q).subscribe({
+      next: res => {
+        console.log('[VacancyDialog] loadEmployers result:', res);
+        this.employers = res.items ?? [];
+      },
+      error: () => { this.employers = []; }
     });
   }
 
+  private loadActivityTypes(q: string) {
+    console.log('[VacancyDialog] loadActivityTypes q:', q);
+    this.actApi.list(1, 20, q).subscribe({
+      next: res => {
+        console.log('[VacancyDialog] loadActivityTypes result:', res);
+        this.activityTypes = res.items ?? [];
+      },
+      error: () => { this.activityTypes = []; }
+    });
+  }
+
+  onSkillEnter(event: KeyboardEvent | Event) {
+    if ('preventDefault' in event) event.preventDefault();
+    if ('stopPropagation' in event) event.stopPropagation?.();
+    this.addSkillFromInput(event as any);
+  }
+
+  onSkillComma(event: KeyboardEvent | Event) {
+    if (event && typeof (event as any).key === 'string') {
+      const ke = event as KeyboardEvent;
+      if (ke.key === ',') {
+        ke.preventDefault();
+        ke.stopPropagation?.();
+        this.addSkillFromInput(event as any);
+      }
+    }
+  }
+
+
+
+
+  addSkillFromInput(e: Event) {
+    const input = e.target as HTMLInputElement | null;
+    const raw = (input?.value || '').trim();
+    console.log('[VacancyDialog] addSkillFromInput raw:', raw);
+
+    if (!raw) return;
+
+    raw.split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .forEach(s => {
+        if (!this.skills.includes(s)) {
+          this.skills.push(s);
+          console.log('[VacancyDialog] skill added:', s, '=>', this.skills);
+        }
+      });
+
+    this.f.skillsText.setValue(this.skills.join(', '), { emitEvent: false });
+
+    if (input) input.value = '';
+  }
+
+  removeSkill(s: string) {
+    this.skills = this.skills.filter(x => x !== s);
+    this.f.skillsText.setValue(this.skills.join(', '), { emitEvent: false });
+  }
+
   cancel() { this.ref.close(false); }
+
+  save() {
+    if (this.form.invalid || this.saving) return;
+    this.saving = true;
+
+    const v = this.form.value;
+
+    const payload: Vacancy = {
+      employerId: v.employerId!,
+      title: (v.title || '').trim(),
+      position: (v.title || '').trim(),
+      activityType: (v.activityType || '') || undefined,
+      salary: v.salary ?? null,
+      status: (v.status as 'open' | 'closed') ?? 'open',
+      skills: this.skills,
+    } as Vacancy;
+
+    console.log('[VacancyDialog] save payload:', payload, 'data?._id:', this.data?._id);
+
+    const req$ = this.data?._id
+      ? this.api.update(this.data._id!, payload)
+      : this.api.create(payload);
+
+    req$.subscribe({
+      next: (res) => {
+        console.log('[VacancyDialog] save success:', res);
+        this.saving = false;
+        this.ref.close(true);
+      },
+      error: (err) => {
+        console.log('[VacancyDialog] save error:', err);
+        this.saving = false;
+      }
+    });
+  }
 }

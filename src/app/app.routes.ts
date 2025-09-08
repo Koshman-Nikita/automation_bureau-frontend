@@ -11,10 +11,10 @@ export const routes: Routes = [
 
   { path: 'activity-types', loadComponent: () => import('./features/activity-types/activity-types-page/activity-types-page').then(m => m.ActivityTypesPage), canActivate: [canActivateAuth] },
 
-  { path: 'employers', loadComponent: () => import('./features/employers/employers-page/employers-page').then(m => m.EmployersPageComponent), canActivate: [canActivateAuth] },
+  { path: 'employers', loadComponent: () => import('./features/employers/employers-page/employers-page').then(m => m.EmployersPage), canActivate: [canActivateAuth] },
   { path: 'jobseekers', loadComponent: () => import('./features/jobseekers/jobseekers-page/jobseekers-page').then(m => m.JobseekersPageComponent), canActivate: [canActivateAuth] },
-  { path: 'vacancies', loadComponent: () => import('./features/vacancies/vacancies-page/vacancies-page').then(m => m.VacanciesPage), canActivate: [canActivateAuth] },
-  { path: 'agreements', loadComponent: () => import('./features/agreements/agreements-page/agreements-page').then(m => m.AgreementsPage), canActivate: [canActivateAuth] },
+  { path: 'vacancies', loadComponent: () => import('./features/vacancies/vacancies-page/vacancies-page').then(m => m.VacanciesPageComponent), canActivate: [canActivateAuth] },
+  { path: 'agreements', loadComponent: () => import('./features/agreements/agreements-page/agreements-page').then(m => m.AgreementsPageComponent), canActivate: [canActivateAuth] },
 
   { path: 'login', loadComponent: () => import('./features/auth/login/login').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterComponent) },

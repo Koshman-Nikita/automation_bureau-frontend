@@ -1,45 +1,84 @@
-<h2 mat-dialog-title>{{ data?._id ? 'Редагувати вакансію' : 'Нова вакансія' }}</h2>
+<form [formGroup]="form" (ngSubmit)="save()" autocomplete="off">
+  <h2 mat-dialog-title class="dialog-title">
+    {{ data?._id ? 'Редагувати вакансію' : 'Нова вакансія' }}
+  </h2>
 
-<mat-dialog-content [formGroup]="form">
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>Роботодавець</mat-label>
-    <input matInput formControlName="employerId" placeholder="ID роботодавця">
-    <mat-error *ngIf="f.employerId.hasError('required')">Обовʼязково</mat-error>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>Посада / назва вакансії</mat-label>
-    <input matInput formControlName="title" placeholder="Напр.: QA Engineer">
-    <mat-error *ngIf="f.title.hasError('required')">Обовʼязково</mat-error>
-  </mat-form-field>
-
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>Тип діяльності</mat-label>
-    <input matInput formControlName="activityType" placeholder="Напр.: testing">
-    <mat-error *ngIf="f.activityType.hasError('required')">Обовʼязково</mat-error>
-  </mat-form-field>
-
-  <div class="row">
-    <mat-form-field appearance="outline" class="w-50 pr-8">
-      <mat-label>Зарплата від</mat-label>
-      <input matInput type="number" formControlName="salaryFrom">
+  <mat-dialog-content class="content">
+    <!-- Роботодавець з пошуком -->
+    <mat-form-field appearance="outline" class="w-full mb-2">
+      <mat-label>Роботодавець*</mat-label>
+      <mat-select formControlName="employerId">
+        <mat-option>
+          <mat-icon>search</mat-icon>
+          <input matInput placeholder="Пошук компанії" [formControl]="empSearch" />
+        </mat-option>
+        <mat-option *ngFor="let e of employers" [value]="e._id">{{ e.name }}</mat-option>
+      </mat-select>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="w-50">
-      <mat-label>Зарплата до</mat-label>
-      <input matInput type="number" formControlName="salaryTo">
-    </mat-form-field>
-  </div>
+    <div class="grid">
+      <mat-form-field appearance="outline" class="col-span-2">
+        <mat-label>Посада / назва вакансії*</mat-label>
+        <input matInput formControlName="title" />
+      </mat-form-field>
 
-  <mat-form-field appearance="outline" class="w-100">
-    <mat-label>Нотатки</mat-label>
-    <textarea matInput formControlName="notes" rows="3"></textarea>
-  </mat-form-field>
-</mat-dialog-content>
+      <!-- Тип діяльності з пошуком -->
+      <mat-form-field appearance="outline" class="col-span-2">
+        <mat-label>Тип діяльності</mat-label>
+        <mat-select formControlName="activityType">
+          <mat-option>
+            <mat-icon>search</mat-icon>
+            <input matInput placeholder="Шукати тип" [formControl]="actSearch" />
+          </mat-option>
+          <mat-option *ngFor="let t of activityTypes" [value]="t.name">{{ t.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Скасувати</button>
-  <button mat-flat-button color="primary" (click)="save()" [disabled]="loading">
-    {{ loading ? 'Збереження…' : 'Зберегти' }}
-  </button>
-</mat-dialog-actions>
+      <mat-form-field appearance="outline">
+        <mat-label>Зарплата</mat-label>
+        <input matInput type="number" formControlName="salary" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Статус</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="open">open</mat-option>
+          <mat-option value="closed">closed</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Навички -->
+      <div class="col-span-2">
+        <label class="chips-label">Навички</label>
+
+        <mat-chip-listbox class="mb-3">
+          <mat-chip *ngFor="let s of skills" (removed)="removeSkill(s)">
+            {{ s }}
+            <button matChipRemove type="button" aria-label="Видалити">✕</button>
+          </mat-chip>
+
+          <input
+          #skillInput
+          placeholder="Додайте навичку (через Enter/кому)"
+          autocomplete="off"
+          (keydown.enter)="onSkillEnter($any($event))"
+          (keydown)="onSkillComma($any($event))"
+          (blur)="addSkillFromInput($event)"
+          />
+
+
+        </mat-chip-listbox>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="actions">
+    <button mat-stroked-button type="button" (click)="cancel()" [disabled]="loading">
+      Скасувати
+    </button>
+
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || loading">
+      {{ data?._id ? 'Зберегти' : 'Створити' }}
+    </button>
+  </mat-dialog-actions>
+</form>

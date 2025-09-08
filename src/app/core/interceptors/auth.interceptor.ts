@@ -1,38 +1,30 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, firstValueFrom, switchMap, throwError } from 'rxjs';
+import {
+  HttpInterceptorFn,
+  HttpRequest,
+  HttpHandlerFn,
+  HttpEvent,
+} from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { TokenService } from '../services/token.service';
-import { AuthService } from '../services/auth.service';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
+export const authInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+): Observable<HttpEvent<unknown>> => {
   const tokens = inject(TokenService);
-  const auth = inject(AuthService);
-  const snack = inject(MatSnackBar);
 
-  const access = tokens.access;
-  const authReq = access ? req.clone({ setHeaders: { Authorization: `Bearer ${access}` } }) : req;
+  const isAbsolute = /^https?:\/\//i.test(req.url);
+  const base = environment.apiBase?.replace(/\/+$/, '') ?? '';
+  const url = isAbsolute
+    ? req.url
+    : `${base}${req.url.startsWith('/') ? '' : '/'}${req.url}`;
 
-  return next(authReq).pipe(
-    catchError((err: HttpErrorResponse) => {
-      if (err.status === 401 && tokens.refresh) {
-        // спробувати оновити токен і повторити запит
-        return auth.refresh().pipe(
-          switchMap(async ok => {
-            if (!ok) {
-              snack.open('Сесія завершена. Увійдіть знову.', 'OK', { duration: 3000 });
-              throw err;
-            }
-            const retried = authReq.clone({ setHeaders: { Authorization: `Bearer ${tokens.access}` } });
-            return await firstValueFrom(next(retried));
-          })
-        );
-      }
+  const headers = tokens.access
+    ? req.headers.set('Authorization', `Bearer ${tokens.access}`)
+    : req.headers;
 
-      // Загальна помилка
-      const msg = (err.error && (err.error.error || err.error.message)) || `Помилка ${err.status}`;
-      snack.open(msg, 'OK', { duration: 3000 });
-      return throwError(() => err);
-    })
-  );
+  const cloned = req.clone({ url, headers });
+  return next(cloned);
 };

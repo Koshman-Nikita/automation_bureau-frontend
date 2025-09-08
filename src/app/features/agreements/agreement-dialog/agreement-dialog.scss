@@ -1,1 +1,14 @@
-@use '../../shared-dialog' as *;
+.dialog-title { margin:0 0 12px; font-size:20px; font-weight:700; }
+.dialog-form { width: 640px; max-width: 100%; }
+.grid-2 {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+}
+.w-100 { width:100%; }
+.actions {
+  margin-top: 12px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}

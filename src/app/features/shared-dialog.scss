@@ -1,6 +1,0 @@
-.dialog-form { padding: 16px 24px 8px; display: grid; gap: 12px; }
-.dialog-title { margin: 0 0 8px; font-weight: 600; }
-.w-100 { width: 100%; }
-.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }

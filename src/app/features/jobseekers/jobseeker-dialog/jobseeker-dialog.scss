@@ -1,1 +1,51 @@
-@use '../../shared-dialog' as *;
+:host {
+  display: block;
+}
+
+h2[mat-dialog-title],
+.dialog-title {
+  margin: 0 0 14px !important;
+  padding: 0;
+  line-height: 1.25;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.content {
+  padding-top: 6px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.content .grid mat-form-field:first-child {
+  margin-top: 2px;
+}
+
+.actions {
+  padding-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2 {
+    grid-column: span 1;
+  }
+}
