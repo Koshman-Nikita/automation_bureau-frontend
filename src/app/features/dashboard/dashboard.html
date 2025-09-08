@@ -1,24 +1,113 @@
-<mat-toolbar color="primary">
-  <span>Automation Bureau — Dashboard</span>
+<div class="page">
+  <div class="header">
+    <h1 class="title">Аналітика бюро</h1>
 
-  <nav class="nav" style="margin-left:16px;">
-    <a mat-button routerLink="/activity-types">Activity Types</a>
-    <a mat-button routerLink="/employers">Employers</a>
-    <a mat-button routerLink="/jobseekers">Jobseekers</a>
-    <a mat-button routerLink="/vacancies">Vacancies</a>
-    <a mat-button routerLink="/agreements">Agreements</a>
-  </nav>
+    <div class="right">
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Пошук</mat-label>
+        <input
+          matInput
+          [ngModel]="q()"
+          (ngModelChange)="q.set($event)"
+          (keyup.enter)="doSearch()"
+        />
+        <button *ngIf="q()" matSuffix mat-icon-button aria-label="clear" (click)="q.set(''); doSearch()">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
 
-  <span style="flex:1 1 auto"></span>
+      <button mat-raised-button color="primary" (click)="goCreate('vacancy')">
+        <mat-icon>post_add</mat-icon>&nbsp;Вакансію
+      </button>
+      <button mat-raised-button color="primary" (click)="goCreate('agreement')">
+        <mat-icon>handshake</mat-icon>&nbsp;Угоду
+      </button>
+      <button mat-raised-button color="primary" (click)="goCreate('jobseeker')">
+        <mat-icon>person_add</mat-icon>&nbsp;Пошукача
+      </button>
+      <button mat-raised-button color="primary" (click)="goCreate('employer')">
+        <mat-icon>business</mat-icon>&nbsp;Роботодавця
+      </button>
+      <button mat-raised-button color="primary" (click)="goCreate('activity')">
+        <mat-icon>category</mat-icon>&nbsp;Види діяльності
+      </button>
+    </div>
+  </div>
 
-  <span *ngIf="userEmail" style="margin-right: 12px;">{{ userEmail }}</span>
-  <button mat-button (click)="logout()">
-    <mat-icon>logout</mat-icon>
-    Logout
-  </button>
-</mat-toolbar>
+  <div class="content" *ngIf="!loading(); else busy">
+    <div class="grid-cards">
+      <mat-card class="kpi">
+        <div class="kpi-title">Відкриті вакансії</div>
+        <div class="kpi-value">{{ val(counts().vacanciesOpen) }}</div>
+      </mat-card>
 
-<div style="padding:16px;">
-  <h2>Вітаємо!</h2>
-  <p>Це стартова сторінка. Далі додамо таблиці та форми CRUD.</p>
+      <mat-card class="kpi">
+        <div class="kpi-title">Закриті вакансії</div>
+        <div class="kpi-value">{{ val(counts().vacanciesClosed) }}</div>
+      </mat-card>
+
+      <mat-card class="kpi">
+        <div class="kpi-title">Пошукачі — пошук роботи</div>
+        <div class="kpi-value">{{ val(counts().jobseekersSearching) }}</div>
+      </mat-card>
+
+      <mat-card class="kpi">
+        <div class="kpi-title">Пошукачі — працює</div>
+        <div class="kpi-value">{{ val(counts().jobseekersEmployed) }}</div>
+      </mat-card>
+
+      <mat-card class="kpi">
+        <div class="kpi-title">Угод (7 днів)</div>
+        <div class="kpi-value">{{ val(counts().agreements7d) }}</div>
+      </mat-card>
+
+      <mat-card class="kpi">
+        <div class="kpi-title">Угод (30 днів)</div>
+        <div class="kpi-value">{{ val(counts().agreements30d) }}</div>
+      </mat-card>
+    </div>
+
+    <div class="grid-rows">
+      <mat-card class="recent">
+        <div class="card-head">
+          <div class="card-title">
+            <mat-icon>timeline</mat-icon>&nbsp;Останні угоди
+          </div>
+          <a routerLink="/agreements" class="link">Всі угоди</a>
+        </div>
+
+        <div class="empty" *ngIf="recent().length === 0">Поки нічого немає</div>
+
+        <div class="recent-item" *ngFor="let a of recent()">
+          <div class="ri-top">
+            <span class="ri-date">{{ fmtDate(a.date) }}</span>
+            <span class="ri-employer">{{ a.employerName || '—' }}</span>
+          </div>
+          <div class="ri-bottom">
+            <span class="ri-vacancy">{{ a.vacancyTitle || '—' }}</span>
+            <span class="ri-jobseeker">{{ a.jobseekerName || '—' }}</span>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="refs" *ngIf="isAdmin()">
+        <div class="card-head">
+          <div class="card-title">
+            <mat-icon>admin_panel_settings</mat-icon>&nbsp;Довідники та списки
+          </div>
+        </div>
+        <div class="links">
+          <a routerLink="/activity-types"><mat-icon>category</mat-icon> Види діяльності</a>
+          <a routerLink="/employers"><mat-icon>business</mat-icon> Роботодавці</a>
+          <a routerLink="/jobseekers"><mat-icon>group</mat-icon> Пошукачі</a>
+          <a routerLink="/vacancies"><mat-icon>work</mat-icon> Вакансії</a>
+          <a routerLink="/agreements"><mat-icon>handshake</mat-icon> Угоди</a>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <ng-template #busy>
+    <div class="busy"><mat-spinner diameter="36"></mat-spinner></div>
+  </ng-template>
 </div>
